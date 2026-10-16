@@ -1,0 +1,3045 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toji — Personal Daily Work Tracker & Analytics</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2310b981%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M13 2L3 14h9l-1 8 10-12h-9l1-8z%22/></svg>">
+
+  <!-- Inter & JetBrains Mono Fonts via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+
+  <!-- Chart.js 4.4 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Complete Minimalist B2B SaaS Design System -->
+  <style>
+    :root {
+      --bg-base: #09090b;
+      --bg-surface: #121215;
+      --bg-surface-elevated: #18181b;
+      --bg-input: #0f0f12;
+      --border-subtle: #27272a;
+      --border-hover: #3f3f46;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-emerald: #10b981;
+      --accent-emerald-hover: #059669;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Menlo', 'Monaco', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: linear-gradient(180deg, rgba(9, 9, 11, 0.88) 0%, rgba(9, 9, 11, 0.94) 100%), url('/toji1.jpg');
+      background-size: cover;
+      background-position: center top;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+
+    .card-surface {
+      background-color: rgba(18, 18, 21, 0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(39, 39, 42, 0.8);
+      border-radius: 12px;
+    }
+    .card-surface-elevated {
+      background-color: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(39, 39, 42, 0.8);
+      border-radius: 12px;
+    }
+
+    .saas-input {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .saas-input:focus {
+      outline: none;
+      border-color: rgba(16, 185, 129, 0.6);
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3);
+    }
+    .anime-glow {
+      box-shadow: 0 0 15px -3px rgba(16, 185, 129, 0.3);
+    }
+    .text-anime-emerald {
+      text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-emerald);
+      color: #09090b;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-emerald-hover);
+    }
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+    .btn-secondary:hover {
+      background-color: #222226;
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+
+    #heatmapGrid {
+      display: grid;
+      grid-template-rows: repeat(7, 12px);
+      grid-auto-flow: column;
+      grid-auto-columns: 12px;
+      gap: 3.5px;
+    }
+
+    .heatmap-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .heatmap-cell:hover {
+      transform: scale(1.35);
+      z-index: 20;
+    }
+
+    /* Modal Backdrop Blur */
+    .modal-backdrop {
+      background-color: rgba(9, 9, 11, 0.82);
+      backdrop-filter: blur(12px);
+    }
+
+    /* Shake animation on wrong password */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-subtle);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- =========================================================================
+       AUTHENTICATION OVERLAYS (SINGLE OWNER SECURITY)
+       ========================================================================= -->
+
+  <!-- 1. Master Unlock Lock Screen -->
+  <div id="lockOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div id="lockModalCard" class="card-surface p-6 sm:p-8 max-w-md w-full shadow-2xl relative border-subtle">
+      <!-- Lock Icon Header -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-emerald-400 mb-3" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white tracking-tight">Owner Access Only</h2>
+        <p class="text-xs text-gray-400 mt-1">This workspace is private. Enter your master password to unlock.</p>
+      </div>
+
+      <!-- Lock Form -->
+      <form id="lockForm" class="flex flex-col gap-4">
+        <div id="lockErrorBanner" class="hidden p-3 rounded-lg text-xs font-mono text-rose-400 bg-rose-950/40 border border-rose-900/60 text-center"></div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-1.5 uppercase tracking-wider">Master Password</label>
+          <div class="relative">
+            <input
+              type="password"
+              id="inputLockPassword"
+              class="saas-input w-full px-3.5 py-2.5 text-sm pr-10 font-mono"
+              placeholder="••••••••••••"
+              required
+              autofocus
+            >
+            <button
+              type="button"
+              id="btnToggleLockPassword"
+              class="absolute right-3 top-2.5 text-gray-500 hover:text-gray-300"
+              title="Show password"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="btnSubmitUnlock"
+          class="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 mt-2"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Unlock Workspace
+        </button>
+
+        <div class="flex items-center justify-between text-xs text-gray-500 font-mono pt-2 border-t-subtle mt-1">
+          <span>Protected by scrypt & timing-safe lock</span>
+          <span class="text-emerald-500">Node:SQLite</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. First-Time Owner Setup Screen -->
+  <div id="setupOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="card-surface p-6 sm:p-8 max-w-md w-full shadow-2xl relative border-subtle">
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-emerald-400 mb-3" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white tracking-tight">Initialize Master Account</h2>
+        <p class="text-xs text-gray-400 mt-1">Welcome! Create your private master credentials. Once initialized, registration is permanently closed.</p>
+      </div>
+
+      <form id="setupForm" class="flex flex-col gap-4">
+        <div id="setupErrorBanner" class="hidden p-3 rounded-lg text-xs font-mono text-rose-400 bg-rose-950/40 border border-rose-900/60 text-center"></div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-1.5 uppercase tracking-wider">Owner Username</label>
+          <input
+            type="text"
+            id="inputSetupUsername"
+            class="saas-input w-full px-3.5 py-2.5 text-sm"
+            value="owner"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-1.5 uppercase tracking-wider">Master Password</label>
+          <input
+            type="password"
+            id="inputSetupPassword"
+            class="saas-input w-full px-3.5 py-2.5 text-sm font-mono"
+            placeholder="At least 6 characters"
+            required
+            minlength="6"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-1.5 uppercase tracking-wider">Confirm Password</label>
+          <input
+            type="password"
+            id="inputSetupPasswordConfirm"
+            class="saas-input w-full px-3.5 py-2.5 text-sm font-mono"
+            placeholder="Re-enter password"
+            required
+            minlength="6"
+          >
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 mt-2"
+        >
+          Create Master Account & Start
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       1. Top Navbar
+       ========================================================================= -->
+  <header class="border-b-subtle sticky top-0 z-40" style="background-color: rgba(9, 9, 11, 0.95); backdrop-filter: blur(8px);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-3.5">
+        <a href="#" class="flex items-center space-x-2.5 text-decoration-none">
+          <div class="w-7 h-7 rounded-md flex items-center justify-center text-emerald-400" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+          <span class="font-semibold text-base tracking-tight text-white flex items-center gap-1.5">
+            Toji
+            <span class="text-xs font-mono uppercase px-1.5 py-0.5 rounded font-normal" style="background: #18181b; color: #a1a1aa; border: 1px solid #27272a; font-size: 10px;">PRO</span>
+          </span>
+        </a>
+
+        <!-- SQLite Synced Badge -->
+        <div class="hidden sm:flex items-center space-x-2 pl-3 border-l-subtle">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span id="syncBadgeText" class="text-xs font-mono text-emerald-400" style="font-size: 11px;">SQLITE SYNCED</span>
+        </div>
+
+        <!-- Navigation Tabs Switcher -->
+        <div class="hidden md:flex items-center space-x-1 pl-4 border-l-subtle">
+          <button
+            id="navTabTasks"
+            class="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-800 text-white transition flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            Tasks & Focus
+          </button>
+          <button
+            id="navTabClasses"
+            class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            be10X & Nxtwave
+          </button>
+          <button
+            id="navTabWorkouts"
+            class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v8H2z"></path>
+              <line x1="6" y1="12" x2="14" y2="12"></line>
+            </svg>
+            Workout
+          </button>
+          <button
+            id="navTabBTech"
+            class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+            </svg>
+            BTech & Coding
+          </button>
+          <button
+            id="navTabJournal"
+            class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Daily Journal
+          </button>
+        </div>
+      </div>
+
+      <!-- Center: Daily Goal Progress -->
+      <div class="hidden lg:flex items-center space-x-3 px-3 py-1 rounded-full card-surface border-subtle">
+        <span class="text-xs font-mono uppercase text-gray-400" style="font-size: 10px;">Daily Goal:</span>
+        <div class="w-24 rounded-full overflow-hidden" style="background-color: #27272a; height: 6px;">
+          <div id="navGoalProgressBar" class="h-full rounded-full transition-all duration-500" style="background-color: #10b981; width: 0%;"></div>
+        </div>
+        <span id="navGoalProgressText" class="text-xs font-mono font-semibold text-white">0.0 / 8.0h</span>
+      </div>
+
+      <!-- Right: User Session & Actions -->
+      <div class="flex items-center space-x-2">
+
+        <!-- Export Dropdown -->
+        <div class="relative">
+          <button id="btnExportMenu" class="btn-secondary px-2.5 py-1.5 text-xs font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span class="hidden sm:inline">Export</span>
+          </button>
+          <div id="exportDropdown" class="hidden absolute right-0 mt-1.5 w-44 card-surface shadow-2xl py-1 text-xs z-50">
+            <button id="btnExportJson" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+              JSON Database Backup <span class="text-gray-500 font-mono" style="font-size: 10px;">.json</span>
+            </button>
+            <button id="btnExportCsv" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+              Tasks Spreadsheet <span class="text-gray-500 font-mono" style="font-size: 10px;">.csv</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings Button -->
+        <button id="btnOpenSettings" class="btn-secondary p-1.5 text-gray-400 hover:text-white" title="Settings & Goals">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Lock Session Button -->
+        <button id="btnLockSession" class="px-2.5 py-1.5 rounded-lg text-xs font-mono bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700 transition flex items-center gap-1.5" title="Lock workspace">
+          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span class="hidden sm:inline">Lock</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       Main Application Container
+       ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1" style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- Anime Theme Banner: Toji & Zoro Core -->
+    <div class="card-surface p-4 sm:p-5 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 border-subtle" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(24, 24, 27, 0.95) 100%);">
+      <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+        <svg class="w-64 h-64 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Character Avatars -->
+        <div class="flex -space-x-3 overflow-hidden flex-shrink-0 anime-glow">
+          <img class="inline-block h-14 w-14 rounded-full ring-2 ring-emerald-500/50 object-cover bg-zinc-800" src="https://i.pinimg.com/736x/8b/60/c8/8b60c8e310052733b664724e54e4df94.jpg" alt="Toji Fushiguro" title="Toji Fushiguro (Supreme Strength)" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80'">
+          <img class="inline-block h-14 w-14 rounded-full ring-2 ring-emerald-500/50 object-cover bg-zinc-800" src="https://i.pinimg.com/736x/2c/32/38/2c323861214040a43f87b8d800efef70.jpg" alt="Roronoa Zoro" title="Roronoa Zoro (Unwavering Discipline)" onerror="this.src='https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150&auto=format&fit=crop&q=80'">
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded text-[11px] font-mono uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-anime-emerald tracking-widest">Toji & Zoro Protocol</span>
+            <span class="text-xs text-gray-400 font-mono">BTech 3rd Year Supreme Discipline</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight mt-1 text-anime-emerald">"When the world shoves you around, you just gotta stand up and fight back."</h2>
+          <p class="text-xs text-gray-400 mt-0.5 opacity-90 italic">— Roronoa Zoro & Toji Fushiguro | Track Daily Work, be10X, Nxtwave, Workout & Academics.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="text-right hidden sm:block">
+          <div class="text-xs font-mono text-emerald-400 font-semibold">BTech Sem 5 & 6</div>
+          <div class="text-[11px] text-gray-400">10X Execution</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VIEW 1: Tasks & Focus Workspace
+         ======================================================================= -->
+    <div id="viewSectionTasks" class="flex flex-col gap-6">
+
+      <!-- Row 1: Task Tracker & Focus Widget -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left 8 Cols: Task Creator & Task Tables -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+
+          <!-- Inline Task Creator Card -->
+          <div class="card-surface p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-xs font-mono uppercase tracking-wider font-semibold flex items-center gap-2" style="color: #a1a1aa;">
+                <span class="w-1.5 h-1.5 rounded-full" style="background-color: #10b981;"></span>
+                Log Task & Work Item
+              </div>
+              <span class="text-xs" style="color: #71717a; font-size: 11px;">Press <kbd class="px-1.5 py-0.5 rounded font-mono" style="background: #18181b; border: 1px solid #27272a; color: #a1a1aa;">Enter</kbd> to add</span>
+            </div>
+
+            <form id="taskCreateForm" class="flex flex-col gap-3">
+              <!-- Task Title Row -->
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  id="inputTaskTitle"
+                  placeholder="What are you working on? (e.g. Implement distributed cache layer)"
+                  class="saas-input flex-1 px-3 py-2 text-sm"
+                  required
+                  autocomplete="off"
+                >
+                <button
+                  type="submit"
+                  class="btn-primary px-4 py-2 text-xs font-medium flex items-center justify-center gap-1.5"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Task
+                </button>
+              </div>
+
+              <!-- Parameters Grid: Category, Priority, Estimate, Notes -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div>
+                  <label class="block text-xs font-mono mb-1" style="color: #71717a; font-size: 11px;">CATEGORY</label>
+                  <select id="selectCategory" class="saas-input w-full px-2.5 py-1.5 text-xs">
+                    <option value="Engineering">Engineering</option>
+                    <option value="Product">Product</option>
+                    <option value="Design">Design</option>
+                    <option value="Deep Work">Deep Work</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-mono mb-1" style="color: #71717a; font-size: 11px;">PRIORITY</label>
+                  <select id="selectPriority" class="saas-input w-full px-2.5 py-1.5 text-xs">
+                    <option value="High">High Priority</option>
+                    <option value="Medium" selected>Medium Priority</option>
+                    <option value="Low">Low Priority</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-mono mb-1" style="color: #71717a; font-size: 11px;">PLANNED DURATION</label>
+                  <select id="selectEstimate" class="saas-input w-full px-2.5 py-1.5 text-xs">
+                    <option value="15">15 min</option>
+                    <option value="25">25 min (1 Pomodoro)</option>
+                    <option value="30">30 min</option>
+                    <option value="45" selected>45 min</option>
+                    <option value="60">60 min (1 hr)</option>
+                    <option value="90">90 min (1.5 hr)</option>
+                    <option value="120">120 min (2 hr)</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tasks List Container with Tabs -->
+          <div class="card-surface p-4 sm:p-5 flex flex-col gap-4">
+            <div class="flex items-center justify-between pb-3 border-b-subtle">
+              <div class="flex items-center space-x-1 p-1 rounded-lg" style="background-color: #0f0f12; border: 1px solid #27272a;">
+                <button
+                  id="btnTabActiveTasks"
+                  class="px-3 py-1 rounded text-xs font-medium text-white transition"
+                  style="background-color: #18181b;"
+                >
+                  Active <span id="countActiveTasks" class="ml-1 px-1.5 py-0.2 rounded-full font-mono text-emerald-400" style="background: rgba(16, 185, 129, 0.15); font-size: 10px;">0</span>
+                </button>
+                <button
+                  id="btnTabCompletedTasks"
+                  class="px-3 py-1 rounded text-xs font-medium transition"
+                  style="color: #71717a;"
+                >
+                  Completed <span id="countCompletedTasks" class="ml-1 px-1.5 py-0.2 rounded-full font-mono" style="background: #27272a; font-size: 10px; color: #a1a1aa;">0</span>
+                </button>
+              </div>
+
+              <!-- Completion Ratio Pill -->
+              <div class="text-xs font-mono" style="color: #a1a1aa;">
+                Progress: <span id="activeTasksPercent" class="font-semibold text-emerald-400">0%</span>
+              </div>
+            </div>
+
+            <!-- Active Tasks List -->
+            <div id="viewActiveTasks" class="flex flex-col gap-2 min-h-[140px]">
+              <div id="activeTasksList" class="flex flex-col gap-2"></div>
+            </div>
+
+            <!-- Completed Tasks List -->
+            <div id="viewCompletedTasks" class="flex flex-col gap-2 hidden min-h-[140px]">
+              <div id="completedTasksList" class="flex flex-col gap-2"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 4 Cols: Focus Pomodoro Timer -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+
+          <div class="card-surface p-5 flex flex-col items-center justify-between relative overflow-hidden">
+            <!-- Subtle Radial Gradient Background -->
+            <div class="absolute inset-0 pointer-events-none opacity-20" style="background: radial-gradient(circle at 50% 20%, #10b981 0%, transparent 70%);"></div>
+
+            <div class="w-full flex items-center justify-between z-10 mb-2">
+              <span class="text-xs font-mono uppercase tracking-wider font-semibold" style="color: #a1a1aa;">Focus Engine</span>
+              <span id="timerModeBadge" class="text-xs font-mono px-2 py-0.5 rounded text-emerald-400 border border-emerald-900 bg-emerald-950/40">POMODORO</span>
+            </div>
+
+            <!-- Active Task Link Banner -->
+            <div id="activeFocusedTaskBanner" class="w-full text-center py-1.5 px-3 rounded-lg text-xs font-mono my-2 border-subtle truncate z-10" style="background-color: #18181b; color: #a1a1aa;">
+              No task targeted. Click Focus on a task.
+            </div>
+
+            <!-- Timer Mode Selector -->
+            <div class="flex items-center gap-1 p-1 rounded-lg my-2 z-10" style="background-color: #0f0f12; border: 1px solid #27272a;">
+              <button id="modeFocus" class="px-2.5 py-1 rounded text-xs font-mono text-white" style="background-color: #18181b;">25m Focus</button>
+              <button id="modeShort" class="px-2.5 py-1 rounded text-xs font-mono text-gray-400 hover:text-white">5m Break</button>
+              <button id="modeLong" class="px-2.5 py-1 rounded text-xs font-mono text-gray-400 hover:text-white">15m Rest</button>
+            </div>
+
+            <!-- Digital Countdown Display -->
+            <div class="my-4 text-center z-10">
+              <div id="timerCountdown" class="font-mono text-5xl font-bold tracking-tight text-white">25:00</div>
+              <div class="w-48 mx-auto mt-3 h-1.5 rounded-full overflow-hidden" style="background-color: #27272a;">
+                <div id="timerProgressBar" class="h-full rounded-full transition-all duration-300" style="background-color: #10b981; width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Primary Timer Controls -->
+            <div class="flex items-center gap-2.5 w-full z-10 mt-1">
+              <button id="btnTimerToggle" class="btn-primary flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-2">
+                <svg id="timerPlayIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span id="timerBtnLabel">Start Session</span>
+              </button>
+              <button id="btnTimerReset" class="btn-secondary px-3 py-2 text-xs" title="Reset Session">
+                <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quick Action: Log to Task -->
+            <button id="btnQuickLogSession" class="w-full mt-2.5 py-1.5 text-xs font-mono rounded border-subtle text-gray-400 hover:text-emerald-400 hover:border-emerald-800 transition z-10" style="background-color: #18181b;">
+              + Quick Log 25m to Active Task
+            </button>
+          </div>
+
+          <!-- Daily Standup Preview Quick Card -->
+          <div class="card-surface p-4 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">Today's Standup</span>
+              <button id="btnQuickSwitchJournal" class="text-xs text-emerald-400 hover:underline font-mono">Open Full Journal →</button>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+              Compile your completed items into clean Markdown ready for Slack, Discord, or async updates.
+            </p>
+            <button id="btnQuickCopyStandup" class="btn-secondary py-1.5 px-3 text-xs font-mono flex items-center justify-center gap-1.5 text-gray-300">
+              <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Auto-Copy Standup Markdown
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- =======================================================================
+           Row 2: Telemetry Metrics & KPI Cards
+           ======================================================================= -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            Performance Telemetry
+          </div>
+          <!-- Date Range Filters -->
+          <div class="flex items-center gap-1 p-0.5 rounded-lg" style="background-color: #0f0f12; border: 1px solid #27272a;">
+            <button class="filter-range-btn px-2.5 py-0.5 rounded text-xs font-mono text-gray-400" data-range="today">Today</button>
+            <button class="filter-range-btn px-2.5 py-0.5 rounded text-xs font-mono text-gray-400" data-range="7d">7 Days</button>
+            <button class="filter-range-btn px-2.5 py-0.5 rounded text-xs font-mono text-white" style="background-color: #18181b;" data-range="30d">30 Days</button>
+            <button class="filter-range-btn px-2.5 py-0.5 rounded text-xs font-mono text-gray-400" data-range="all">All</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- KPI 1: Hours Tracked -->
+          <div class="card-surface p-4 flex flex-col justify-between">
+            <span class="text-xs font-mono uppercase text-gray-400">Hours Tracked</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="kpiTotalHours" class="text-2xl font-bold font-mono text-white">0.0h</span>
+              <span class="text-xs font-mono text-emerald-400">Actual focus</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 font-mono" id="kpiPlannedHours">Planned: 0.0h</div>
+          </div>
+
+          <!-- KPI 2: Task Completion Rate -->
+          <div class="card-surface p-4 flex flex-col justify-between">
+            <span class="text-xs font-mono uppercase text-gray-400">Completion Rate</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="kpiCompletionRate" class="text-2xl font-bold font-mono text-white">0%</span>
+              <span id="kpiCompletedFraction" class="text-xs font-mono text-emerald-400">0/0 closed</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 font-mono">Tasks finished on time</div>
+          </div>
+
+          <!-- KPI 3: Deep Focus Score -->
+          <div class="card-surface p-4 flex flex-col justify-between">
+            <span class="text-xs font-mono uppercase text-gray-400">Deep Focus Score</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="kpiDeepFocusScore" class="text-2xl font-bold font-mono text-white">85/100</span>
+              <span class="text-xs font-mono text-purple-400">Velocity</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 font-mono">Ratio of deep work focus</div>
+          </div>
+
+          <!-- KPI 4: Active Streak -->
+          <div class="card-surface p-4 flex flex-col justify-between">
+            <span class="text-xs font-mono uppercase text-gray-400">Productive Streak</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="kpiStreakDays" class="text-2xl font-bold font-mono text-white">0 Days</span>
+              <span class="text-xs font-mono text-emerald-400">🔥 Active</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 font-mono">Consecutive active days</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =======================================================================
+           Row 3: 90-Day GitHub Activity Heatmap
+           ======================================================================= -->
+      <div class="card-surface p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">90-Day Activity Heatmap</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono text-gray-400" style="font-size: 11px;">
+            <span>Less</span>
+            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: #18181b;"></span>
+            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: #064e3b;"></span>
+            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: #047857;"></span>
+            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: #10b981;"></span>
+            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: #34d399;"></span>
+            <span>More</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto pb-2">
+          <div id="heatmapGrid"></div>
+        </div>
+      </div>
+
+      <!-- =======================================================================
+           Row 4: Analytics Visualizations (Category Doughnut & Workload Bar Chart)
+           ======================================================================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Category Doughnut -->
+        <div class="lg:col-span-5 card-surface p-5 flex flex-col">
+          <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300 mb-3">Time Distribution by Category</div>
+          <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div id="categoryChartLegend" class="grid grid-cols-2 gap-2 mt-4 text-xs font-mono"></div>
+        </div>
+
+        <!-- Planned vs Actual Bar Chart -->
+        <div class="lg:col-span-7 card-surface p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Planned vs. Actual Daily Workload (Hours)</span>
+            <div class="flex items-center gap-3 text-xs font-mono text-gray-400">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background-color: #3f3f46;"></span> Planned</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background-color: #10b981;"></span> Actual</span>
+            </div>
+          </div>
+          <div class="relative flex-1 min-h-[220px]">
+            <canvas id="weeklyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- =======================================================================
+           Row 5: Searchable Work Audit Table
+           ======================================================================= -->
+      <div class="card-surface p-5 flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Historical Work Audit Log</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              id="historySearchInput"
+              placeholder="Search sessions..."
+              class="saas-input px-3 py-1.5 text-xs w-48"
+            >
+            <select id="historyCategoryFilter" class="saas-input px-2.5 py-1.5 text-xs">
+              <option value="all">All Categories</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Product">Product</option>
+              <option value="Design">Design</option>
+              <option value="Deep Work">Deep Work</option>
+              <option value="Admin">Admin</option>
+            </select>
+            <select id="historyStatusFilter" class="saas-input px-2.5 py-1.5 text-xs">
+              <option value="all">All Status</option>
+              <option value="completed">Completed Only</option>
+              <option value="active">Active Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+                <th class="py-2.5 px-4 font-medium">Task & Work Item</th>
+                <th class="py-2.5 px-4 font-medium">Category</th>
+                <th class="py-2.5 px-4 font-medium">Priority</th>
+                <th class="py-2.5 px-4 font-medium">Planned</th>
+                <th class="py-2.5 px-4 font-medium">Actual</th>
+                <th class="py-2.5 px-4 font-medium">Date</th>
+                <th class="py-2.5 px-4 font-medium">Status</th>
+                <th class="py-2.5 px-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t-subtle text-xs text-gray-400 font-mono">
+          <span id="historyTableCountSummary">Showing 0 sessions</span>
+          <div class="flex items-center gap-1.5">
+            <button id="btnPrevPage" class="btn-secondary px-2.5 py-1 text-xs" disabled>Prev</button>
+            <button id="btnNextPage" class="btn-secondary px-2.5 py-1 text-xs" disabled>Next</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =======================================================================
+         VIEW: be10X & Nxtwave Classes Hub
+         ======================================================================= -->
+    <div id="viewSectionClasses" class="flex flex-col gap-6 hidden">
+      <div class="card-surface p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            be10X & Nxtwave Classes & Mastery
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">Track your AI Prompt Engineering (be10X) and Full Stack CCBP 4.0 (Nxtwave) lectures and modules.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="classPlatformFilter" class="saas-input px-3 py-1.5 text-xs font-mono">
+            <option value="all">All Platforms</option>
+            <option value="be10x">be10X (AI & Prompt)</option>
+            <option value="nxtwave">Nxtwave (CCBP 4.0)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Add Class Form -->
+      <div class="card-surface p-4 sm:p-5">
+        <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400 mb-3">Add New Lecture / Course Module</div>
+        <form id="classCreateForm" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-3">
+            <select id="inputClassPlatform" class="saas-input w-full px-3 py-2 text-xs font-mono">
+              <option value="be10x">be10X Classes</option>
+              <option value="nxtwave">Nxtwave Classes</option>
+            </select>
+          </div>
+          <div class="sm:col-span-5">
+            <input type="text" id="inputClassTitle" placeholder="Class / Topic Title (e.g. Advanced ChatGPT Workflows)" class="saas-input w-full px-3 py-2 text-xs" required>
+          </div>
+          <div class="sm:col-span-2">
+            <input type="text" id="inputClassModule" placeholder="Module / Session" class="saas-input w-full px-3 py-2 text-xs">
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="btn-primary w-full py-2 text-xs font-semibold flex items-center justify-center gap-1.5">Add Class</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Classes List Table -->
+      <div class="card-surface p-5">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+                <th class="py-2.5 px-4 font-medium">Platform</th>
+                <th class="py-2.5 px-4 font-medium">Class Title</th>
+                <th class="py-2.5 px-4 font-medium">Module / Topic</th>
+                <th class="py-2.5 px-4 font-medium">Status</th>
+                <th class="py-2.5 px-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="classesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VIEW: Workout Routine Hub
+         ======================================================================= -->
+    <div id="viewSectionWorkouts" class="flex flex-col gap-6 hidden">
+      <div class="card-surface p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Daily Workout & Fitness Routine
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">Stay physically formidable like Toji & Zoro. Track Push, Pull, Legs, and Cardio sessions.</p>
+        </div>
+        <div class="text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-900/60">
+          💪 Strength & Conditioning
+        </div>
+      </div>
+
+      <!-- Add Workout Form -->
+      <div class="card-surface p-4 sm:p-5">
+        <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400 mb-3">Log Exercise</div>
+        <form id="workoutCreateForm" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-4">
+            <input type="text" id="inputWorkoutExercise" placeholder="Exercise Name (e.g. Barbell Bench Press)" class="saas-input w-full px-3 py-2 text-xs" required>
+          </div>
+          <div class="sm:col-span-3">
+            <select id="inputWorkoutCategory" class="saas-input w-full px-3 py-2 text-xs font-mono">
+              <option value="Push">Push (Chest/Shoulders/Triceps)</option>
+              <option value="Pull">Pull (Back/Biceps)</option>
+              <option value="Legs">Legs (Quads/Hamstrings/Calves)</option>
+              <option value="Cardio">Cardio & Core</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <input type="text" id="inputWorkoutSetsReps" placeholder="Sets x Reps (e.g. 4 x 10)" class="saas-input w-full px-3 py-2 text-xs" value="3 x 12">
+          </div>
+          <div class="sm:col-span-1">
+            <input type="text" id="inputWorkoutWeight" placeholder="Weight" class="saas-input w-full px-3 py-2 text-xs" value="Bodyweight">
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="btn-primary w-full py-2 text-xs font-semibold flex items-center justify-center gap-1.5">Add Lift</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Workouts Table -->
+      <div class="card-surface p-5">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+                <th class="py-2.5 px-4 font-medium">Exercise</th>
+                <th class="py-2.5 px-4 font-medium">Category</th>
+                <th class="py-2.5 px-4 font-medium">Sets & Reps</th>
+                <th class="py-2.5 px-4 font-medium">Weight / Intensity</th>
+                <th class="py-2.5 px-4 font-medium">Status</th>
+                <th class="py-2.5 px-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="workoutsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VIEW: BTech 3rd Year & Coding Hub
+         ======================================================================= -->
+    <div id="viewSectionBTech" class="flex flex-col gap-6 hidden">
+      <div class="card-surface p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            BTech 3rd Year Academics & Coding Hub
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">Semester 5 & 6 subjects, CGPA tracking, and LeetCode / CodeChef competitive programming logs.</p>
+        </div>
+        <div id="cgpaDisplayBadge" class="text-xs font-mono text-white bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700">
+          Estimated CGPA: <span class="text-emerald-400 font-bold" id="liveCgpaVal">8.5</span>
+        </div>
+      </div>
+
+      <!-- Two Columns: Academics & Coding Practice -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Subjects & CGPA -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          <div class="card-surface p-5">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400">BTech 3rd Year Subjects</span>
+            </div>
+            <form id="btechSubjectCreateForm" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <input type="text" id="inputSubjectName" placeholder="Subject Name" class="saas-input px-3 py-1.5 text-xs" required>
+              <input type="text" id="inputSubjectCode" placeholder="Code (e.g. CS301)" class="saas-input px-3 py-1.5 text-xs" required>
+              <select id="inputSubjectSemester" class="saas-input px-3 py-1.5 text-xs font-mono">
+                <option value="1">Sem 1</option>
+                <option value="2">Sem 2</option>
+                <option value="3">Sem 3</option>
+                <option value="4">Sem 4</option>
+                <option value="5" selected>Sem 5</option>
+                <option value="6">Sem 6</option>
+                <option value="7">Sem 7</option>
+                <option value="8">Sem 8</option>
+              </select>
+              <input type="number" id="inputSubjectCredits" placeholder="Task Count / Weight (e.g. 3)" class="saas-input px-3 py-1.5 text-xs" required value="3">
+              <select id="inputSubjectGrade" class="saas-input px-3 py-1.5 text-xs font-mono">
+                <option value="O">Grade: O</option>
+                <option value="A+">Grade: A+</option>
+                <option value="A" selected>Grade: A</option>
+                <option value="B+">Grade: B+</option>
+                <option value="B">Grade: B</option>
+                <option value="C">Grade: C</option>
+              </select>
+              <button type="submit" class="btn-primary py-1.5 text-xs font-semibold">Add Subject</button>
+            </form>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400">Curriculum Subjects</span>
+              <select id="btechSemFilter" class="saas-input px-2.5 py-1 text-xs font-mono">
+                <option value="all">All Semesters (1-8)</option>
+                <option value="1">Sem 1</option>
+                <option value="2">Sem 2</option>
+                <option value="3">Sem 3</option>
+                <option value="4">Sem 4</option>
+                <option value="5" selected>Sem 5</option>
+                <option value="6">Sem 6</option>
+                <option value="7">Sem 7</option>
+                <option value="8">Sem 8</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+                    <th class="py-2 px-3">Sem & Code</th>
+                    <th class="py-2 px-3">Subject Name</th>
+                    <th class="py-2 px-3">Tasks</th>
+                    <th class="py-2 px-3">Grade</th>
+                    <th class="py-2 px-3 text-right">Works & Tasks</th>
+                  </tr>
+                </thead>
+                <tbody id="btechSubjectsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Coding Practice (LeetCode / CodeChef) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="card-surface p-5">
+            <div class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400 mb-3">Coding Practice (LeetCode & CodeChef)</div>
+            <form id="codingCreateForm" class="flex flex-col gap-3 mb-4">
+              <div class="grid grid-cols-2 gap-2">
+                <select id="inputCodingPlatform" class="saas-input px-2.5 py-1.5 text-xs font-mono">
+                  <option value="LeetCode">LeetCode</option>
+                  <option value="CodeChef">CodeChef</option>
+                  <option value="HackerRank">HackerRank</option>
+                </select>
+                <select id="inputCodingDiff" class="saas-input px-2.5 py-1.5 text-xs font-mono">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <input type="text" id="inputCodingTitle" placeholder="Problem Title (e.g. LRU Cache)" class="saas-input px-3 py-1.5 text-xs" required>
+              <button type="submit" class="btn-primary w-full py-2 text-xs font-semibold">Log Solved Problem</button>
+            </form>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+                    <th class="py-2 px-3">Platform</th>
+                    <th class="py-2 px-3">Problem</th>
+                    <th class="py-2 px-3">Diff</th>
+                    <th class="py-2 px-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="codingTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VIEW 2: Daily Standup & Journal Suite
+         ======================================================================= -->
+    <div id="viewSectionJournal" class="flex flex-col gap-6 hidden">
+
+      <!-- Journal Header Banner -->
+      <div class="card-surface p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-white">Daily Standup & Executive Journal</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Automate your end-of-day summary, log blockers, and sync tomorrow's goals.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="text-xs font-mono text-gray-400">Journal Date:</label>
+          <input
+            type="date"
+            id="journalDatePicker"
+            class="saas-input px-3 py-1.5 text-xs font-mono"
+          >
+          <button
+            id="btnAutoGenerateStandup"
+            class="btn-primary px-3.5 py-1.5 text-xs font-medium flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Auto-Compile Standup
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left 7 Cols: Formatted Markdown Standup Generator -->
+        <div class="lg:col-span-7 card-surface p-5 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Compiled Standup Report (Markdown)</span>
+            <button
+              id="btnCopyStandupMarkdown"
+              class="btn-secondary px-3 py-1 text-xs font-mono flex items-center gap-1.5 text-gray-200"
+            >
+              <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy to Clipboard
+            </button>
+          </div>
+
+          <textarea
+            id="journalSummaryText"
+            rows="14"
+            class="saas-input w-full p-3 text-xs font-mono leading-relaxed resize-y"
+            placeholder="# Daily Standup will be compiled here from today's completed tasks..."
+          ></textarea>
+        </div>
+
+        <!-- Right 5 Cols: Mood, Blockers & Tomorrow Goals -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+
+          <!-- Productivity Mood Card -->
+          <div class="card-surface p-5 flex flex-col gap-3">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Today's Focus Mood</span>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" class="mood-btn p-2 rounded-lg text-xs font-mono border-subtle text-center hover:border-emerald-500 transition" data-mood="productive">
+                ⚡ Peak
+              </button>
+              <button type="button" class="mood-btn p-2 rounded-lg text-xs font-mono border-subtle text-center hover:border-emerald-500 transition" data-mood="steady">
+                🌿 Steady
+              </button>
+              <button type="button" class="mood-btn p-2 rounded-lg text-xs font-mono border-subtle text-center hover:border-emerald-500 transition" data-mood="blocked">
+                🛑 Blocked
+              </button>
+            </div>
+          </div>
+
+          <!-- Blockers & Obstacles -->
+          <div class="card-surface p-5 flex flex-col gap-2">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Blockers & Roadblocks</span>
+            <textarea
+              id="journalBlockers"
+              rows="3"
+              class="saas-input w-full p-2.5 text-xs font-mono"
+              placeholder="- Third-party API rate limits&#10;- Awaiting PR review on auth service"
+            ></textarea>
+          </div>
+
+          <!-- Tomorrow's Top Goals -->
+          <div class="card-surface p-5 flex flex-col gap-2">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Tomorrow's Primary Goals</span>
+            <textarea
+              id="journalGoalsTomorrow"
+              rows="3"
+              class="saas-input w-full p-2.5 text-xs font-mono"
+              placeholder="- Deploy v2 indexing service&#10;- Conduct customer teardown interview"
+            ></textarea>
+          </div>
+
+          <!-- Key Takeaways & Energy -->
+          <div class="card-surface p-5 flex flex-col gap-2">
+            <span class="text-xs font-mono uppercase tracking-wider font-semibold text-gray-300">Key Takeaways</span>
+            <textarea
+              id="journalKeyTakeaways"
+              rows="2"
+              class="saas-input w-full p-2.5 text-xs font-mono"
+              placeholder="Key insights learned today..."
+            ></textarea>
+            <label class="text-xs font-mono text-gray-400 mt-2">Energy Rating (1-5)</label>
+            <input type="range" id="journalEnergyRating" min="1" max="5" step="1" class="w-full">
+          </div>
+
+          <button
+            id="btnSaveJournal"
+            class="btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
+          >
+            Save Journal & Reflection
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Subject Works Modal -->
+  <div id="subjectWorksModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="card-surface p-6 max-w-lg w-full shadow-2xl relative border-subtle">
+      <div class="flex items-center justify-between pb-3 border-b-subtle mb-4">
+        <div>
+          <h3 class="text-sm font-semibold text-white" id="modalSubjectTitle">Subject Works</h3>
+          <p class="text-xs text-gray-400 font-mono mt-0.5" id="modalSubjectCode">Manage assignments, lab records, projects & study goals</p>
+        </div>
+        <button id="btnCloseSubjectWorks" class="text-gray-400 hover:text-white p-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Add Work Form -->
+      <form id="subjectWorkCreateForm" class="flex flex-col gap-3 mb-4">
+        <input type="hidden" id="modalSubjectId">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="inputWorkTitle" placeholder="Work Title (e.g. Lab Record #3)" class="saas-input px-3 py-1.5 text-xs" required>
+          <select id="inputWorkType" class="saas-input px-2.5 py-1.5 text-xs font-mono">
+            <option value="Assignment">Assignment</option>
+            <option value="Lab Record">Lab Record</option>
+            <option value="Project/Mini-Project">Project / Mini-Project</option>
+            <option value="Revision/Study Goal">Revision / Study Goal</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="date" id="inputWorkDeadline" class="saas-input px-3 py-1.5 text-xs font-mono flex-1">
+          <button type="submit" class="btn-primary px-4 py-1.5 text-xs font-semibold">Add Work Item</button>
+        </div>
+      </form>
+
+      <!-- Works List -->
+      <div class="overflow-x-auto max-h-60 overflow-y-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b-subtle font-mono text-gray-400" style="background-color: #0f0f12;">
+              <th class="py-2 px-3">Title</th>
+              <th class="py-2 px-3">Type</th>
+              <th class="py-2 px-3">Deadline</th>
+              <th class="py-2 px-3">Status</th>
+              <th class="py-2 px-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="subjectWorksTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Settings Modal
+       ========================================================================= -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="card-surface p-6 max-w-lg w-full shadow-2xl relative border-subtle">
+      <div class="flex items-center justify-between pb-3 border-b-subtle mb-4">
+        <h3 class="text-sm font-semibold text-white">Application Settings & Targets</h3>
+        <button id="btnCloseSettings" class="text-gray-400 hover:text-white p-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-1">DAILY TARGET HOURS</label>
+          <input type="number" step="0.5" id="settingDailyGoal" class="saas-input w-full px-3 py-1.5 text-xs font-mono" value="8.0">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-mono text-gray-400 mb-1">POMODORO LENGTH (MINS)</label>
+            <input type="number" id="settingPomodoroLength" class="saas-input w-full px-3 py-1.5 text-xs font-mono" value="25">
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-gray-400 mb-1">SHORT BREAK (MINS)</label>
+            <input type="number" id="settingShortBreak" class="saas-input w-full px-3 py-1.5 text-xs font-mono" value="5">
+          </div>
+        </div>
+
+        <!-- Master Password Change Section -->
+        <div class="pt-3 border-t-subtle">
+          <span class="text-xs font-mono uppercase text-gray-400 block mb-2">Change Master Password</span>
+          <div class="flex flex-col gap-2">
+            <input type="password" id="inputCurrentPass" placeholder="Current master password" class="saas-input w-full px-3 py-1.5 text-xs font-mono">
+            <input type="password" id="inputNewPass" placeholder="New master password (min 6 chars)" class="saas-input w-full px-3 py-1.5 text-xs font-mono">
+            <button id="btnSubmitChangePass" class="btn-secondary py-1 text-xs font-mono text-emerald-400 hover:text-emerald-300">Update Master Password</button>
+          </div>
+        </div>
+
+        <!-- Dataset Actions -->
+        <div class="pt-3 border-t-subtle flex flex-col gap-2">
+          <span class="text-xs font-mono uppercase text-gray-400">Dataset Control</span>
+          <div class="flex items-center gap-2">
+            <button id="btnReloadMockData" class="btn-secondary flex-1 py-1.5 text-xs font-mono text-gray-300 hover:text-white">
+              Load 14-Day Sample Data
+            </button>
+            <button id="btnClearAllWork" class="btn-secondary py-1.5 px-3 text-xs font-mono text-rose-400 hover:text-rose-300 border-rose-900/50">
+              Purge Database
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t-subtle flex justify-end gap-2">
+          <button id="btnSaveSettings" class="btn-primary px-4 py-1.5 text-xs font-semibold">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- =========================================================================
+       JavaScript Application Engine
+       ========================================================================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      // -----------------------------------------------------------------------
+      // REST API Client
+      // -----------------------------------------------------------------------
+      let activeAuthToken = localStorage.getItem('toji_auth_token') || null;
+
+      const api = {
+        async request(endpoint, options = {}) {
+          const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          };
+
+          if (activeAuthToken) {
+            headers['Authorization'] = `Bearer ${activeAuthToken}`;
+          }
+
+          try {
+            const res = await fetch(endpoint, { ...options, headers });
+
+            // Handle unauthorized access by displaying the Master Lock Overlay
+            if (res.status === 401) {
+              activeAuthToken = null;
+              localStorage.removeItem('toji_auth_token');
+              showLockScreen();
+              throw new Error('Authentication required');
+            }
+
+            const data = await res.json();
+            if (!res.ok) {
+              throw new Error(data.error || 'Server request failed');
+            }
+            return data;
+          } catch (err) {
+            console.error(`API Error [${endpoint}]:`, err);
+            throw err;
+          }
+        },
+
+        get(endpoint) { return this.request(endpoint, { method: 'GET' }); },
+        post(endpoint, body) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(body) }); },
+        put(endpoint, body) { return this.request(endpoint, { method: 'PUT', body: JSON.stringify(body) }); },
+        delete(endpoint) { return this.request(endpoint, { method: 'DELETE' }); }
+      };
+
+      // -----------------------------------------------------------------------
+      // Application State
+      // -----------------------------------------------------------------------
+      let currentUser = null;
+      let tasks = [];
+      let settings = {
+        daily_goal_hours: 8.0,
+        pomodoro_length: 25,
+        short_break: 5,
+        long_break: 15
+      };
+
+      let dateFilter = '30d';
+      let historyPage = 1;
+      const historyPageSize = 8;
+      let historySearchQuery = '';
+      let historyCategoryFilterValue = 'all';
+      let historyStatusFilterValue = 'all';
+
+      // Persistent Wall-Clock Timer State
+      let timerInterval = null;
+      let activeFocusedTaskId = null;
+      let timerRunning = false;
+      let timerSecondsLeft = 25 * 60;
+      let timerTotalSeconds = 25 * 60;
+      let timerMode = 'focus';
+
+      // Charts
+      let categoryChartInstance = null;
+      let weeklyChartInstance = null;
+
+      // -----------------------------------------------------------------------
+      // Web Audio Chime Synthesizer
+      // -----------------------------------------------------------------------
+      function playChime() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const now = ctx.currentTime;
+
+          // Note 1 (E5)
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(659.25, now);
+          gain1.gain.setValueAtTime(0.2, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.5);
+
+          // Note 2 (A5)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(880.00, now + 0.2);
+          gain2.gain.setValueAtTime(0.25, now + 0.2);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + 0.2);
+          osc2.stop(now + 0.8);
+        } catch (e) {
+          // AudioContext blocked or unsupported
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // Toast Notifications
+      // -----------------------------------------------------------------------
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const borderColor = type === 'error' ? 'border-red-900 bg-red-950/80 text-red-200' : 'border-emerald-800 bg-zinc-900/90 text-emerald-300';
+
+        toast.className = `px-3.5 py-2.5 rounded-lg border text-xs font-mono shadow-2xl flex items-center gap-2 pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ${borderColor}`;
+        toast.innerHTML = `
+          <span>${type === 'error' ? '⚠️' : '✓'}</span>
+          <span>${escapeHtml(message)}</span>
+        `;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-2', 'opacity-0');
+        });
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      // -----------------------------------------------------------------------
+      // Authentication Lifecycle
+      // -----------------------------------------------------------------------
+      async function initAuth() {
+        try {
+          const status = await api.get('/api/auth/status');
+          if (!status.isSetup) {
+            document.getElementById('setupOverlay').classList.remove('hidden');
+            document.getElementById('lockOverlay').classList.add('hidden');
+            return false;
+          }
+
+          if (!status.isAuthenticated) {
+            showLockScreen();
+            return false;
+          }
+
+          currentUser = status.username;
+          document.getElementById('setupOverlay').classList.add('hidden');
+          document.getElementById('lockOverlay').classList.add('hidden');
+          return true;
+        } catch (err) {
+          showLockScreen();
+          return false;
+        }
+      }
+
+      function showLockScreen() {
+        document.getElementById('lockOverlay').classList.remove('hidden');
+        document.getElementById('setupOverlay').classList.add('hidden');
+        const passInput = document.getElementById('inputLockPassword');
+        passInput.value = '';
+        setTimeout(() => passInput.focus(), 100);
+      }
+
+      // -----------------------------------------------------------------------
+      // Data Synchronization Layer
+      // -----------------------------------------------------------------------
+      async function loadAllData() {
+        try {
+          const [tasksRes, settingsRes] = await Promise.all([
+            api.get('/api/tasks'),
+            api.get('/api/settings')
+          ]);
+
+          tasks = tasksRes.tasks || [];
+          if (settingsRes.settings) {
+            settings = {
+              daily_goal_hours: parseFloat(settingsRes.settings.daily_goal_hours) || 8.0,
+              pomodoro_length: parseInt(settingsRes.settings.pomodoro_length, 10) || 25,
+              short_break: parseInt(settingsRes.settings.short_break, 10) || 5,
+              long_break: parseInt(settingsRes.settings.long_break, 10) || 15
+            };
+          }
+
+          restoreTimerState();
+          await Promise.all([loadClasses(), loadWorkouts(), loadBTech()]);
+          renderAll();
+        } catch (err) {
+          console.error('Failed to load data:', err);
+        }
+      }
+
+      function getTodayString() {
+        return new Date().toISOString().split('T')[0];
+      }
+
+      // -----------------------------------------------------------------------
+      // Persistent Wall-Clock Timer Logic
+      // -----------------------------------------------------------------------
+      function saveTimerStateToStorage() {
+        if (!timerRunning) {
+          localStorage.removeItem('toji_timer_active');
+          return;
+        }
+        const state = {
+          mode: timerMode,
+          activeTaskId: activeFocusedTaskId,
+          targetDuration: timerTotalSeconds,
+          startTime: Date.now() - (timerTotalSeconds - timerSecondsLeft) * 1000
+        };
+        localStorage.setItem('toji_timer_active', JSON.stringify(state));
+      }
+
+      function restoreTimerState() {
+        const stored = localStorage.getItem('toji_timer_active');
+        if (!stored) {
+          setTimerMode('focus', false);
+          return;
+        }
+
+        try {
+          const state = JSON.parse(stored);
+          const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+          timerTotalSeconds = state.targetDuration;
+          timerMode = state.mode;
+          activeFocusedTaskId = state.activeTaskId;
+
+          if (elapsed >= timerTotalSeconds) {
+            timerSecondsLeft = 0;
+            timerRunning = false;
+            localStorage.removeItem('toji_timer_active');
+          } else {
+            timerSecondsLeft = timerTotalSeconds - elapsed;
+            timerRunning = true;
+            startTimerInterval();
+          }
+          updateTimerUI();
+        } catch (e) {
+          localStorage.removeItem('toji_timer_active');
+        }
+      }
+
+      function setTimerMode(mode, autoStart = false) {
+        timerMode = mode;
+        const pomo = settings.pomodoro_length || 25;
+        const sBrk = settings.short_break || 5;
+        const lBrk = settings.long_break || 15;
+
+        if (mode === 'focus') timerTotalSeconds = pomo * 60;
+        else if (mode === 'short') timerTotalSeconds = sBrk * 60;
+        else if (mode === 'long') timerTotalSeconds = lBrk * 60;
+
+        timerSecondsLeft = timerTotalSeconds;
+
+        const badge = document.getElementById('timerModeBadge');
+        if (mode === 'focus') badge.textContent = 'POMODORO';
+        else if (mode === 'short') badge.textContent = 'SHORT BREAK';
+        else if (mode === 'long') badge.textContent = 'LONG REST';
+
+        ['modeFocus', 'modeShort', 'modeLong'].forEach(id => {
+          document.getElementById(id).style.backgroundColor = 'transparent';
+          document.getElementById(id).style.color = '#a1a1aa';
+        });
+
+        const activeBtn = mode === 'focus' ? 'modeFocus' : (mode === 'short' ? 'modeShort' : 'modeLong');
+        document.getElementById(activeBtn).style.backgroundColor = '#18181b';
+        document.getElementById(activeBtn).style.color = '#ffffff';
+
+        updateTimerUI();
+        if (autoStart) startTimer();
+      }
+
+      function startTimerInterval() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          const stored = localStorage.getItem('toji_timer_active');
+          if (stored) {
+            try {
+              const state = JSON.parse(stored);
+              const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+              timerSecondsLeft = Math.max(0, timerTotalSeconds - elapsed);
+            } catch (e) {
+              timerSecondsLeft--;
+            }
+          } else {
+            timerSecondsLeft--;
+          }
+
+          if (timerSecondsLeft <= 0) {
+            onTimerComplete();
+          } else {
+            updateTimerUI();
+          }
+        }, 300);
+      }
+
+      function startTimer() {
+        timerRunning = true;
+        saveTimerStateToStorage();
+        startTimerInterval();
+        updateTimerUI();
+      }
+
+      function pauseTimer() {
+        timerRunning = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        localStorage.removeItem('toji_timer_active');
+        updateTimerUI();
+      }
+
+      function toggleTimer() {
+        if (timerRunning) pauseTimer();
+        else startTimer();
+      }
+
+      function resetTimer() {
+        pauseTimer();
+        timerSecondsLeft = timerTotalSeconds;
+        updateTimerUI();
+      }
+
+      async function onTimerComplete() {
+        pauseTimer();
+        timerSecondsLeft = 0;
+        updateTimerUI();
+        playChime();
+
+        if (timerMode === 'focus' && activeFocusedTaskId) {
+          const durationMins = Math.round(timerTotalSeconds / 60);
+          try {
+            await api.post(`/api/tasks/${activeFocusedTaskId}/log-time`, {
+              durationSeconds: timerTotalSeconds,
+              type: 'focus',
+              notes: 'Completed Pomodoro session'
+            });
+            showToast(`Logged ${durationMins}m focus time to task!`);
+            await loadAllData();
+          } catch (err) {
+            showToast('Failed to log session to database', 'error');
+          }
+        } else {
+          showToast(`Session complete! Time for the next step.`);
+        }
+      }
+
+      function updateTimerUI() {
+        const mins = Math.floor(timerSecondsLeft / 60);
+        const secs = timerSecondsLeft % 60;
+        const display = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        document.getElementById('timerCountdown').textContent = display;
+
+        const pct = Math.max(0, Math.min(100, Math.round(((timerTotalSeconds - timerSecondsLeft) / timerTotalSeconds) * 100)));
+        document.getElementById('timerProgressBar').style.width = `${pct}%`;
+
+        const btnLabel = document.getElementById('timerBtnLabel');
+        const playIcon = document.getElementById('timerPlayIcon');
+        if (timerRunning) {
+          btnLabel.textContent = 'Pause Session';
+          playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+        } else {
+          btnLabel.textContent = 'Start Session';
+          playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+        }
+
+        const banner = document.getElementById('activeFocusedTaskBanner');
+        if (activeFocusedTaskId) {
+          const t = tasks.find(x => x.id === activeFocusedTaskId);
+          banner.textContent = t ? `Target: ${t.title}` : 'Selected task target active';
+          banner.style.color = '#34d399';
+        } else {
+          banner.textContent = 'No task targeted. Click Focus on a task.';
+          banner.style.color = '#a1a1aa';
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // Task Operations (Full-Stack Database Integrated)
+      // -----------------------------------------------------------------------
+      async function addTask(title, category, priority, plannedMins) {
+        try {
+          const res = await api.post('/api/tasks', {
+            title,
+            category,
+            priority,
+            planned_mins: parseInt(plannedMins, 10) || 45,
+            date: getTodayString()
+          });
+          tasks.unshift(res.task);
+          renderAll();
+          showToast('Task added to database');
+        } catch (err) {
+          showToast('Failed to create task', 'error');
+        }
+      }
+
+      async function toggleTaskComplete(id) {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const newStatus = task.status === 'completed' ? 'active' : 'completed';
+        const completedAt = newStatus === 'completed' ? new Date().toISOString() : null;
+
+        // Optimistic UI update
+        task.status = newStatus;
+        task.completed_at = completedAt;
+        renderTaskLists();
+        renderKPIs();
+
+        try {
+          await api.put(`/api/tasks/${id}`, {
+            status: newStatus,
+            completed_at: completedAt
+          });
+          showToast(newStatus === 'completed' ? 'Task completed! Great work.' : 'Task marked active');
+          await loadAllData();
+        } catch (err) {
+          showToast('Failed to update task status', 'error');
+          await loadAllData();
+        }
+      }
+
+      async function deleteTask(id) {
+        try {
+          await api.delete(`/api/tasks/${id}`);
+          tasks = tasks.filter(t => t.id !== id);
+          if (activeFocusedTaskId === id) activeFocusedTaskId = null;
+          renderAll();
+          showToast('Task removed from database');
+        } catch (err) {
+          showToast('Failed to delete task', 'error');
+        }
+      }
+
+      function selectTaskForFocus(id) {
+        activeFocusedTaskId = id;
+        setTimerMode('focus', false);
+        updateTimerUI();
+        showToast('Task linked to focus timer');
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Rendering: Task Lists & Empty States
+      // -----------------------------------------------------------------------
+      function renderTaskLists() {
+        const activeContainer = document.getElementById('activeTasksList');
+        const completedContainer = document.getElementById('completedTasksList');
+
+        const today = getTodayString();
+        const activeTasks = tasks.filter(t => t.status === 'active');
+        const completedTasks = tasks.filter(t => t.status === 'completed');
+
+        document.getElementById('countActiveTasks').textContent = activeTasks.length;
+        document.getElementById('countCompletedTasks').textContent = completedTasks.length;
+
+        const total = activeTasks.length + completedTasks.length;
+        const pct = total > 0 ? Math.round((completedTasks.length / total) * 100) : 0;
+        document.getElementById('activeTasksPercent').textContent = `${pct}%`;
+
+        // Render Active Tasks
+        if (activeTasks.length === 0) {
+          activeContainer.innerHTML = `
+            <div class="p-8 text-center flex flex-col items-center justify-center card-surface-elevated border-subtle">
+              <span class="text-2xl mb-2">⚡</span>
+              <p class="text-sm font-semibold text-white">No active tasks right now.</p>
+              <p class="text-xs text-gray-400 mt-1 max-w-sm">Use the form above to plan a work item, or load sample data to explore analytics.</p>
+              <button id="btnEmptyStateSample" class="mt-4 px-3 py-1.5 text-xs font-mono rounded bg-zinc-800 hover:bg-zinc-700 text-emerald-400 border border-zinc-700 transition">
+                Load 14-Day Sample Dataset
+              </button>
+            </div>
+          `;
+          const sampleBtn = document.getElementById('btnEmptyStateSample');
+          if (sampleBtn) {
+            sampleBtn.addEventListener('click', async () => {
+              await api.post('/api/sample-data');
+              await loadAllData();
+              showToast('Sample data seeded successfully!');
+            });
+          }
+        } else {
+          activeContainer.innerHTML = activeTasks.map(t => renderTaskItem(t)).join('');
+        }
+
+        // Render Completed Tasks
+        if (completedTasks.length === 0) {
+          completedContainer.innerHTML = `
+            <div class="p-8 text-center text-xs text-gray-500 font-mono">
+              No completed tasks yet. Finish a task to see it here!
+            </div>
+          `;
+        } else {
+          completedContainer.innerHTML = completedTasks.map(t => renderTaskItem(t)).join('');
+        }
+      }
+
+      function renderTaskItem(task) {
+        const isDone = task.status === 'completed';
+        const isFocused = activeFocusedTaskId === task.id;
+
+        return `
+          <div class="flex items-center justify-between p-3 rounded-lg border-subtle transition ${isFocused ? 'ring-1 ring-emerald-500/50 bg-emerald-950/20' : 'hover:bg-zinc-850'}" style="background-color: #121215;">
+            <div class="flex items-center gap-3 flex-1 min-w-0 pr-3">
+              <button
+                data-action="complete"
+                data-id="${task.id}"
+                class="w-4 h-4 rounded border flex items-center justify-center transition flex-shrink-0 ${isDone ? 'bg-emerald-500 border-emerald-500 text-black' : 'border-zinc-700 hover:border-emerald-500'}"
+              >
+                ${isDone ? '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+              </button>
+
+              <div class="flex flex-col min-w-0">
+                <span class="text-xs sm:text-sm font-medium truncate ${isDone ? 'line-through text-gray-500' : 'text-gray-200'}">
+                  ${escapeHtml(task.title)}
+                </span>
+                <div class="flex items-center gap-2 mt-1">
+                  ${getCategoryBadge(task.category)}
+                  ${getPriorityBadge(task.priority)}
+                  <span class="text-xs font-mono text-gray-400" style="font-size: 11px;">
+                    ${task.actual_mins}m <span class="text-gray-600">/ ${task.planned_mins}m</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                data-action="focus"
+                data-id="${task.id}"
+                class="px-2 py-1 rounded text-xs font-mono transition flex items-center gap-1 ${isFocused ? 'bg-emerald-500 text-black font-semibold' : 'btn-secondary text-gray-400 hover:text-white'}"
+                title="Send to Focus Timer"
+              >
+                <span>🎯</span>
+                <span class="hidden sm:inline">Focus</span>
+              </button>
+              <button
+                data-action="delete"
+                data-id="${task.id}"
+                class="p-1 text-gray-500 hover:text-rose-400 transition"
+                title="Delete task"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Rendering: KPIs, Telemetry & Goal Meter
+      // -----------------------------------------------------------------------
+      async function renderKPIs() {
+        try {
+          const res = await api.get(`/api/analytics?range=${dateFilter}`);
+          const a = res.analytics || {};
+
+          document.getElementById('kpiTotalHours').textContent = `${(a.totalHours || 0).toFixed(1)}h`;
+          document.getElementById('kpiCompletionRate').textContent = `${a.completionRate || 0}%`;
+          document.getElementById('kpiCompletedFraction').textContent = `${a.completedTasks || 0}/${a.totalTasks || 0} closed`;
+          document.getElementById('kpiDeepFocusScore').textContent = `${a.deepFocusScore || 85}/100`;
+          document.getElementById('kpiStreakDays').textContent = `${a.streak || 0} Days`;
+
+          // Daily Goal Progress
+          const goal = settings.daily_goal_hours || 8.0;
+          const todayMins = tasks.filter(t => t.date === getTodayString()).reduce((s, t) => s + (t.actual_mins || 0), 0);
+          const todayHours = (todayMins / 60).toFixed(1);
+          const goalPct = Math.min(100, Math.round((todayHours / goal) * 100));
+
+          document.getElementById('navGoalProgressBar').style.width = `${goalPct}%`;
+          document.getElementById('navGoalProgressText').textContent = `${todayHours} / ${goal.toFixed(1)}h`;
+
+          renderHeatmapFromData(a.heatmap || []);
+          renderChartsFromData(a.categories || [], a.workload || []);
+        } catch (err) {
+          console.error('Error fetching analytics:', err);
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Rendering: 90-Day Activity Heatmap
+      // -----------------------------------------------------------------------
+      function renderHeatmapFromData(heatmapRows) {
+        const grid = document.getElementById('heatmapGrid');
+        if (!grid) return;
+
+        const dateMap = {};
+        for (const row of heatmapRows) {
+          dateMap[row.date] = (row.total_mins || 0) / 60;
+        }
+
+        const cells = [];
+        const now = new Date();
+        for (let i = 89; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(now.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const hrs = dateMap[dateStr] || 0;
+
+          let color = '#18181b';
+          if (hrs > 6) color = '#34d399';
+          else if (hrs > 4) color = '#10b981';
+          else if (hrs > 2) color = '#047857';
+          else if (hrs > 0) color = '#064e3b';
+
+          cells.push(`
+            <div
+              class="heatmap-cell"
+              style="background-color: ${color};"
+              title="${dateStr}: ${hrs.toFixed(1)} hrs logged"
+            ></div>
+          `);
+        }
+
+        grid.innerHTML = cells.join('');
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Rendering: Chart.js Category & Workload Visualizations
+      // -----------------------------------------------------------------------
+      function renderChartsFromData(categoryData, workloadData) {
+        const catCanvas = document.getElementById('categoryChart');
+        const legendContainer = document.getElementById('categoryChartLegend');
+
+        const catColors = {
+          'Engineering': '#10b981',
+          'Product': '#6366f1',
+          'Design': '#06b6d4',
+          'Deep Work': '#8b5cf6',
+          'Admin': '#71717a'
+        };
+
+        const labels = ['Engineering', 'Product', 'Design', 'Deep Work', 'Admin'];
+        const values = labels.map(l => {
+          const row = categoryData.find(c => c.category === l);
+          return row ? parseFloat(((row.total_mins || 0) / 60).toFixed(1)) : 0;
+        });
+
+        // 1. Doughnut Chart
+        if (catCanvas) {
+          const ctx = catCanvas.getContext('2d');
+          if (categoryChartInstance) categoryChartInstance.destroy();
+
+          const hasData = values.some(v => v > 0);
+          categoryChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data: hasData ? values : [1, 1, 1, 1, 1],
+                backgroundColor: hasData ? labels.map(l => catColors[l]) : ['#27272a', '#27272a', '#27272a', '#27272a', '#27272a'],
+                borderColor: '#121215',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '72%',
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#18181b',
+                  titleColor: '#fafafa',
+                  bodyColor: '#a1a1aa',
+                  borderColor: '#27272a',
+                  borderWidth: 1,
+                  callbacks: {
+                    label: ctx => ` ${ctx.label}: ${hasData ? ctx.raw + ' hrs' : '0 hrs'}`
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        if (legendContainer) {
+          legendContainer.innerHTML = labels.map(l => `
+            <div class="flex items-center justify-between p-1 rounded border-subtle bg-zinc-900">
+              <span class="flex items-center gap-1.5 text-gray-200">
+                <span class="w-2 h-2 rounded-full" style="background-color: ${catColors[l]}"></span>
+                ${l}
+              </span>
+              <span class="text-gray-400 font-mono">${(values[labels.indexOf(l)] || 0).toFixed(1)}h</span>
+            </div>
+          `).join('');
+        }
+
+        // 2. Workload Bar Chart
+        const weekCanvas = document.getElementById('weeklyChart');
+        if (weekCanvas) {
+          const ctx = weekCanvas.getContext('2d');
+          if (weeklyChartInstance) weeklyChartInstance.destroy();
+
+          const dayLabels = (workloadData || []).map(w => {
+            const parts = w.date.split('-');
+            return `${parts[1]}/${parts[2]}`;
+          });
+          const planned = (workloadData || []).map(w => w.planned_hours || 0);
+          const actual = (workloadData || []).map(w => w.actual_hours || 0);
+
+          weeklyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: dayLabels,
+              datasets: [
+                {
+                  label: 'Planned',
+                  data: planned,
+                  backgroundColor: '#3f3f46',
+                  borderRadius: 4
+                },
+                {
+                  label: 'Actual',
+                  data: actual,
+                  backgroundColor: '#10b981',
+                  borderRadius: 4
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { grid: { display: false }, ticks: { color: '#71717a', font: { family: 'JetBrains Mono', size: 10 } } },
+                y: { grid: { color: '#27272a' }, ticks: { color: '#71717a', font: { family: 'JetBrains Mono', size: 10 } } }
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#18181b',
+                  titleColor: '#fafafa',
+                  bodyColor: '#a1a1aa',
+                  borderColor: '#27272a',
+                  borderWidth: 1
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Rendering: Work Audit Table with Search & Pagination
+      // -----------------------------------------------------------------------
+      function renderHistoryTable() {
+        const tbody = document.getElementById('historyTableBody');
+        const countSummary = document.getElementById('historyTableCountSummary');
+        const btnPrev = document.getElementById('btnPrevPage');
+        const btnNext = document.getElementById('btnNextPage');
+
+        let filtered = tasks.filter(task => {
+          if (historySearchQuery) {
+            const q = historySearchQuery.toLowerCase();
+            const matchTitle = (task.title || '').toLowerCase().includes(q);
+            const matchCat = (task.category || '').toLowerCase().includes(q);
+            if (!matchTitle && !matchCat) return false;
+          }
+          if (historyCategoryFilterValue !== 'all' && task.category !== historyCategoryFilterValue) {
+            return false;
+          }
+          if (historyStatusFilterValue === 'completed' && task.status !== 'completed') return false;
+          if (historyStatusFilterValue === 'active' && task.status !== 'active') return false;
+
+          return true;
+        });
+
+        const totalItems = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / historyPageSize));
+        if (historyPage > totalPages) historyPage = totalPages;
+        if (historyPage < 1) historyPage = 1;
+
+        btnPrev.disabled = historyPage <= 1;
+        btnNext.disabled = historyPage >= totalPages;
+
+        const startIndex = (historyPage - 1) * historyPageSize;
+        const pageItems = filtered.slice(startIndex, startIndex + historyPageSize);
+
+        countSummary.textContent = `Showing ${totalItems === 0 ? 0 : startIndex + 1} - ${Math.min(startIndex + historyPageSize, totalItems)} of ${totalItems} sessions`;
+
+        if (pageItems.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center py-8 text-gray-500 font-mono">
+                No matching sessions found.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = pageItems.map(task => `
+          <tr class="hover:bg-zinc-800/50 transition border-b-subtle">
+            <td class="py-2.5 px-4 font-medium text-white max-w-xs truncate" title="${escapeHtml(task.title)}">
+              ${escapeHtml(task.title)}
+            </td>
+            <td class="py-2.5 px-4">${getCategoryBadge(task.category)}</td>
+            <td class="py-2.5 px-4">${getPriorityBadge(task.priority)}</td>
+            <td class="py-2.5 px-4 font-mono text-gray-400">${task.planned_mins}m</td>
+            <td class="py-2.5 px-4 font-mono text-emerald-400 font-semibold">${task.actual_mins}m</td>
+            <td class="py-2.5 px-4 font-mono text-gray-500">${task.date}</td>
+            <td class="py-2.5 px-4">
+              ${task.status === 'completed'
+                ? '<span class="text-emerald-400 font-mono" style="font-size: 11px;">✓ Completed</span>'
+                : '<span class="text-amber-400 font-mono" style="font-size: 11px;">⏳ Active</span>'}
+            </td>
+            <td class="py-2.5 px-4 text-right">
+              <button
+                data-action="delete"
+                data-id="${task.id}"
+                class="text-gray-500 hover:text-rose-400 transition p-1"
+                title="Delete session"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // -----------------------------------------------------------------------
+      // New Data State
+      // -----------------------------------------------------------------------
+      let classesData = [];
+      let workoutsData = [];
+      let btechSubjectsData = [];
+      let codingData = [];
+
+      // -----------------------------------------------------------------------
+      // New Data Loaders
+      // -----------------------------------------------------------------------
+      async function loadClasses() {
+        try {
+          const res = await api.get('/api/classes');
+          classesData = res.classes || [];
+          renderClasses();
+        } catch (e) {}
+      }
+
+      async function loadWorkouts() {
+        try {
+          const res = await api.get('/api/workouts');
+          workoutsData = res.workouts || [];
+          renderWorkouts();
+        } catch (e) {}
+      }
+
+      async function loadBTech() {
+        try {
+          const [subRes, codRes] = await Promise.all([
+            api.get('/api/btech'),
+            api.get('/api/coding')
+          ]);
+          btechSubjectsData = subRes.subjects || [];
+          codingData = codRes.coding || [];
+          renderBTech();
+        } catch (e) {}
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Renderers
+      // -----------------------------------------------------------------------
+      function renderClasses() {
+        const tbody = document.getElementById('classesTableBody');
+        if (!tbody) return;
+        const filter = document.getElementById('classPlatformFilter')?.value || 'all';
+        const filtered = classesData.filter(c => filter === 'all' || c.platform === filter);
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-500 font-mono">No classes logged. Add one above!</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = filtered.map(c => `
+          <tr class="border-b-subtle hover:bg-zinc-900/50 transition">
+            <td class="py-3 px-4 font-mono uppercase text-emerald-400 font-semibold text-[11px]">${c.platform}</td>
+            <td class="py-3 px-4 text-white font-medium">${escapeHtml(c.title)}</td>
+            <td class="py-3 px-4 text-gray-300 font-mono text-[11px]">${escapeHtml(c.module || '—')}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase ${c.status === 'completed' ? 'bg-emerald-950/40 text-emerald-400' : 'bg-zinc-800 text-gray-400'}">${c.status}</span></td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="toggleClassStatus('${c.id}')" class="btn-secondary px-2 py-1 text-[11px] mr-1">${c.status === 'completed' ? 'Reopen' : 'Done'}</button>
+              <button onclick="deleteClassItem('${c.id}')" class="p-1 text-gray-500 hover:text-rose-400">🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function renderWorkouts() {
+        const tbody = document.getElementById('workoutsTableBody');
+        if (!tbody) return;
+        if (workoutsData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500 font-mono">No workouts logged yet. Stay strong!</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = workoutsData.map(w => `
+          <tr class="border-b-subtle hover:bg-zinc-900/50 transition">
+            <td class="py-3 px-4 text-white font-medium">${escapeHtml(w.exercise)}</td>
+            <td class="py-3 px-4 font-mono text-emerald-400 text-[11px]">${w.category}</td>
+            <td class="py-3 px-4 font-mono text-gray-300 text-[11px]">${escapeHtml(w.sets)} sets</td>
+            <td class="py-3 px-4 font-mono text-gray-300 text-[11px]">${escapeHtml(w.weight)}</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase ${w.status === 'completed' ? 'bg-emerald-950/40 text-emerald-400' : 'bg-zinc-800 text-gray-400'}">${w.status}</span></td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="toggleWorkoutStatus('${w.id}')" class="btn-secondary px-2 py-1 text-[11px] mr-1">${w.status === 'completed' ? 'Undo' : 'Done'}</button>
+              <button onclick="deleteWorkoutItem('${w.id}')" class="p-1 text-gray-500 hover:text-rose-400">🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function renderBTech() {
+        const subTbody = document.getElementById('btechSubjectsTableBody');
+        const codTbody = document.getElementById('codingTableBody');
+        if (!subTbody || !codTbody) return;
+
+        const semFilter = document.getElementById('btechSemFilter')?.value || 'all';
+        const filteredSubjects = (semFilter === 'all')
+          ? btechSubjectsData
+          : btechSubjectsData.filter(s => String(s.semester) === String(semFilter));
+
+        subTbody.innerHTML = filteredSubjects.length === 0
+          ? `<tr><td colspan="5" class="py-4 text-center text-gray-500 font-mono text-[11px]">No subjects found for this semester.</td></tr>`
+          : filteredSubjects.map(s => `
+          <tr class="border-b-subtle hover:bg-zinc-900/50 transition">
+            <td class="py-2.5 px-3 font-mono text-gray-400 text-[11px]">Sem ${s.semester || 5} • ${escapeHtml(s.code)}</td>
+            <td class="py-2.5 px-3 font-medium text-white">${escapeHtml(s.subject_name)}</td>
+            <td class="py-2.5 px-3 font-mono text-gray-300 text-[11px]">${s.credits} Tasks</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400 font-bold">${s.grade}</td>
+            <td class="py-2.5 px-3 text-right">
+              <button onclick="toggleSubjectStatus('${s.id}')" class="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase ${s.status === 'completed' ? 'bg-emerald-950/40 text-emerald-400' : 'bg-zinc-800 text-gray-400'}">${s.status}</button>
+              <button onclick="openSubjectWorksModal('${s.id}', '${escapeHtml(s.subject_name)}', '${escapeHtml(s.code)}')" class="btn-secondary px-2 py-1 text-[10px]">Works</button>
+              <button onclick="deleteSubjectItem('${s.id}')" class="p-1 text-gray-500 hover:text-rose-400">🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+
+        const gradePoints = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5 };
+        let totalPts = 0;
+        let totalTasks = 0;
+        for (const s of btechSubjectsData) {
+          const pts = gradePoints[s.grade] || 8;
+          totalPts += pts * s.credits;
+          totalTasks += s.credits;
+        }
+        const cgpa = totalTasks > 0 ? (totalPts / totalTasks).toFixed(2) : '8.50';
+        document.getElementById('liveCgpaVal').textContent = cgpa;
+
+        codTbody.innerHTML = codingData.length === 0
+          ? `<tr><td colspan="4" class="py-4 text-center text-gray-500 font-mono text-[11px]">No problems logged.</td></tr>`
+          : codingData.map(c => `
+            <tr class="border-b-subtle hover:bg-zinc-900/50 transition">
+              <td class="py-2.5 px-3 font-mono text-emerald-400 text-[10px]">${c.platform}</td>
+              <td class="py-2.5 px-3 text-white font-medium">${escapeHtml(c.problem_title)}</td>
+              <td class="py-2.5 px-3 font-mono text-gray-300 text-[10px]">${c.difficulty}</td>
+              <td class="py-2.5 px-3 text-right"><button onclick="deleteCodingItem('${c.id}')" class="p-1 text-gray-500 hover:text-rose-400">🗑️</button></td>
+            </tr>
+          `).join('');
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Action Handlers
+      // -----------------------------------------------------------------------
+      window.openSubjectWorksModal = async function(subjectId, title, code) {
+        document.getElementById('modalSubjectId').value = subjectId;
+        document.getElementById('modalSubjectTitle').textContent = title;
+        document.getElementById('modalSubjectCode').textContent = code;
+        document.getElementById('subjectWorksModal').classList.remove('hidden');
+        await loadSubjectWorks(subjectId);
+      };
+
+      async function loadSubjectWorks(subjectId) {
+        try {
+          const res = await api.get(`/api/btech/${subjectId}/works`);
+          const works = res.works || [];
+          const tbody = document.getElementById('subjectWorksTableBody');
+          if (works.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500 font-mono text-[11px]">No work items logged.</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = works.map(w => `
+            <tr class="border-b-subtle hover:bg-zinc-900/50 transition">
+              <td class="py-2.5 px-3 text-white font-medium">${escapeHtml(w.title)}</td>
+              <td class="py-2.5 px-3 text-gray-400 font-mono text-[10px]">${w.type}</td>
+              <td class="py-2.5 px-3 text-gray-400 font-mono text-[10px]">${w.deadline || '—'}</td>
+              <td class="py-2.5 px-3">
+                <button onclick="toggleWorkStatus('${w.id}')" class="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase ${w.status === 'completed' ? 'bg-emerald-950/40 text-emerald-400' : 'bg-zinc-800 text-gray-400'}">${w.status}</button>
+              </td>
+              <td class="py-2.5 px-3 text-right">
+                <button onclick="deleteWorkItem('${w.id}')" class="p-1 text-gray-500 hover:text-rose-400">🗑️</button>
+              </td>
+            </tr>
+          `).join('');
+        } catch (e) { showToast('Failed to load works', 'error'); }
+      }
+
+      document.getElementById('btnCloseSubjectWorks').addEventListener('click', () => {
+        document.getElementById('subjectWorksModal').classList.add('hidden');
+      });
+
+      document.getElementById('subjectWorkCreateForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const subjectId = document.getElementById('modalSubjectId').value;
+        try {
+          await api.post(`/api/btech/${subjectId}/works`, {
+            title: document.getElementById('inputWorkTitle').value,
+            type: document.getElementById('inputWorkType').value,
+            deadline: document.getElementById('inputWorkDeadline').value
+          });
+          document.getElementById('inputWorkTitle').value = '';
+          await loadSubjectWorks(subjectId);
+          showToast('Work item added');
+        } catch (e) { showToast('Failed to add work item', 'error'); }
+      });
+
+      window.toggleWorkStatus = async function(id) {
+        try {
+          const res = await api.get(`/api/btech/${document.getElementById('modalSubjectId').value}/works`);
+          const work = (res.works || []).find(w => w.id === id);
+          if (!work) return;
+          const newStatus = work.status === 'completed' ? 'pending' : 'completed';
+          await api.put(`/api/works/${id}`, { status: newStatus });
+          const subjectId = document.getElementById('modalSubjectId').value;
+          await loadSubjectWorks(subjectId);
+          showToast('Status updated');
+        } catch (e) { showToast('Failed to update status', 'error'); }
+      };
+
+      window.deleteWorkItem = async function(id) {
+        try {
+          await api.delete(`/api/works/${id}`);
+          const subjectId = document.getElementById('modalSubjectId').value;
+          await loadSubjectWorks(subjectId);
+          showToast('Work item deleted');
+        } catch (e) { showToast('Failed to delete work item', 'error'); }
+      };
+
+      window.toggleClassStatus = async function(id) {
+        const item = classesData.find(c => c.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+        try {
+          await api.put(`/api/classes/${id}`, { status: newStatus });
+          await loadClasses();
+          showToast('Class status updated');
+        } catch (e) { showToast('Failed to update class', 'error'); }
+      };
+
+      window.deleteClassItem = async function(id) {
+        try {
+          await api.delete(`/api/classes/${id}`);
+          await loadClasses();
+          showToast('Class deleted');
+        } catch (e) { showToast('Failed to delete class', 'error'); }
+      };
+
+      window.toggleWorkoutStatus = async function(id) {
+        const item = workoutsData.find(w => w.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+        try {
+          await api.put(`/api/workouts/${id}`, { status: newStatus });
+          await loadWorkouts();
+          showToast('Workout status updated');
+        } catch (e) { showToast('Failed to update workout', 'error'); }
+      };
+
+      window.deleteWorkoutItem = async function(id) {
+        try {
+          await api.delete(`/api/workouts/${id}`);
+          await loadWorkouts();
+          showToast('Workout deleted');
+        } catch (e) { showToast('Failed to delete workout', 'error'); }
+      };
+
+      window.toggleSubjectStatus = async function(id) {
+        const item = btechSubjectsData.find(s => s.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'completed' ? 'ongoing' : 'completed';
+        try {
+          await api.put(`/api/btech/${id}`, { status: newStatus });
+          await loadBTech();
+          showToast('Subject status updated');
+        } catch (e) { showToast('Failed to update status', 'error'); }
+      };
+
+      window.deleteSubjectItem = async function(id) {
+        if (!confirm('Are you sure you want to delete this subject?')) return;
+        try {
+          await api.delete(`/api/btech/${id}`);
+          await loadBTech();
+          showToast('Subject deleted');
+        } catch (e) { showToast('Failed to delete subject', 'error'); }
+      };
+
+      window.deleteCodingItem = async function(id) {
+        try {
+          await api.delete(`/api/coding/${id}`);
+          await loadBTech();
+          showToast('Coding problem removed');
+        } catch (e) { showToast('Failed to delete problem', 'error'); }
+      };
+
+      window.toggleSubjectStatus = async function(id) {
+        const item = btechSubjectsData.find(s => s.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'completed' ? 'ongoing' : 'completed';
+        try {
+          await api.put(`/api/btech/${id}`, { status: newStatus });
+          await loadBTech();
+          showToast('Subject status updated');
+        } catch (e) { showToast('Failed to update subject', 'error'); }
+      };
+
+      window.deleteSubjectItem = async function(id) {
+        try {
+          await api.delete(`/api/btech/${id}`);
+          await loadBTech();
+          showToast('Subject deleted');
+        } catch (e) { showToast('Failed to delete subject', 'error'); }
+      };
+
+
+      // -----------------------------------------------------------------------
+      // Daily Standup & Journal Logic
+      // -----------------------------------------------------------------------
+      async function loadJournalForDate(date) {
+        try {
+          const res = await api.get(`/api/journal/${date}`);
+          const summary = res.summary || {};
+          document.getElementById('journalSummaryText').value = summary.summary_text || '';
+          document.getElementById('journalBlockers').value = summary.blockers || '';
+          document.getElementById('journalGoalsTomorrow').value = summary.goals_tomorrow || '';
+
+          // Mood
+          document.querySelectorAll('.mood-btn').forEach(b => {
+            if (b.getAttribute('data-mood') === (summary.mood || 'productive')) {
+              b.classList.add('bg-emerald-950/40', 'border-emerald-600', 'text-emerald-400');
+            } else {
+              b.classList.remove('bg-emerald-950/40', 'border-emerald-600', 'text-emerald-400');
+            }
+          });
+        } catch (err) {
+          console.error('Error loading journal:', err);
+        }
+      }
+
+      async function autoGenerateStandup(date) {
+        try {
+          const res = await api.post(`/api/journal/generate/${date}`);
+          if (res.standup) {
+            document.getElementById('journalSummaryText').value = res.standup.markdown;
+            showToast('Standup compiled from completed tasks!');
+          }
+        } catch (err) {
+          showToast('Failed to compile standup', 'error');
+        }
+      }
+
+      async function saveJournal(date) {
+        const summaryText = document.getElementById('journalSummaryText').value;
+        const blockers = document.getElementById('journalBlockers').value;
+        const goalsTomorrow = document.getElementById('journalGoalsTomorrow').value;
+
+        let selectedMood = 'productive';
+        const activeMoodBtn = document.querySelector('.mood-btn.bg-emerald-950\\/40');
+        if (activeMoodBtn) selectedMood = activeMoodBtn.getAttribute('data-mood');
+
+        try {
+          await api.put(`/api/journal/${date}`, {
+            summary_text: summaryText,
+            mood: selectedMood,
+            blockers,
+            goals_tomorrow: goalsTomorrow
+          });
+          showToast('Journal & Standup saved to database!');
+        } catch (err) {
+          showToast('Failed to save journal', 'error');
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // UI Badges & Helpers
+      // -----------------------------------------------------------------------
+      function getCategoryBadge(category) {
+        const styles = {
+          'Engineering': 'background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25);',
+          'Product': 'background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.25);',
+          'Design': 'background: rgba(6, 182, 212, 0.1); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25);',
+          'Deep Work': 'background: rgba(139, 92, 246, 0.1); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25);',
+          'Admin': 'background: #18181b; color: #a1a1aa; border: 1px solid #27272a;'
+        };
+        const style = styles[category] || styles['Admin'];
+        return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono" style="${style}; font-size: 10px;">${category}</span>`;
+      }
+
+      function getPriorityBadge(priority) {
+        const styles = {
+          'High': 'background: rgba(244, 63, 94, 0.1); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25);',
+          'Medium': 'background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25);',
+          'Low': 'background: #18181b; color: #a1a1aa; border: 1px solid #27272a;'
+        };
+        const style = styles[priority] || styles['Medium'];
+        return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono" style="${style}; font-size: 10px;">${priority}</span>`;
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function renderAll() {
+        renderTaskLists();
+        renderKPIs();
+        renderHistoryTable();
+        renderClasses();
+        renderWorkouts();
+        renderBTech();
+      }
+
+      // -----------------------------------------------------------------------
+      // Event Listeners & Setup
+      // -----------------------------------------------------------------------
+      function setupEventListeners() {
+        // Master Setup Form
+        document.getElementById('setupForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          const username = document.getElementById('inputSetupUsername').value.trim();
+          const password = document.getElementById('inputSetupPassword').value;
+          const confirm = document.getElementById('inputSetupPasswordConfirm').value;
+          const banner = document.getElementById('setupErrorBanner');
+
+          if (password !== confirm) {
+            banner.textContent = 'Passwords do not match.';
+            banner.classList.remove('hidden');
+            return;
+          }
+
+          try {
+            const res = await api.post('/api/auth/setup', { username, password });
+            if (res.token) {
+              activeAuthToken = res.token;
+              localStorage.setItem('toji_auth_token', res.token);
+              currentUser = res.username;
+              document.getElementById('setupOverlay').classList.add('hidden');
+              showToast('Master account initialized! Welcome.');
+              await loadAllData();
+            }
+          } catch (err) {
+            banner.textContent = err.message;
+            banner.classList.remove('hidden');
+          }
+        });
+
+        // Master Unlock Form
+        document.getElementById('lockForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          const password = document.getElementById('inputLockPassword').value;
+          const banner = document.getElementById('lockErrorBanner');
+          const card = document.getElementById('lockModalCard');
+
+          try {
+            const res = await api.post('/api/auth/login', { password });
+            if (res.token) {
+              activeAuthToken = res.token;
+              localStorage.setItem('toji_auth_token', res.token);
+              currentUser = res.username;
+              document.getElementById('lockOverlay').classList.add('hidden');
+              showToast('Workspace unlocked');
+              await loadAllData();
+            }
+          } catch (err) {
+            banner.textContent = err.message || 'Invalid master password';
+            banner.classList.remove('hidden');
+            card.classList.remove('animate-shake');
+            void card.offsetWidth; // Trigger reflow for animation restart
+            card.classList.add('animate-shake');
+          }
+        });
+
+        // Toggle Password Visibility
+        document.getElementById('btnToggleLockPassword').addEventListener('click', () => {
+          const input = document.getElementById('inputLockPassword');
+          input.type = input.type === 'password' ? 'text' : 'password';
+        });
+
+        // Lock Session
+        document.getElementById('btnLockSession').addEventListener('click', async () => {
+          try {
+            await api.post('/api/auth/logout');
+          } catch (e) {}
+          activeAuthToken = null;
+          localStorage.removeItem('toji_auth_token');
+          showLockScreen();
+          showToast('Workspace locked', 'info');
+        });
+
+        // Tab Navigation
+        const tabs = [
+          { btn: document.getElementById('navTabTasks'), view: document.getElementById('viewSectionTasks') },
+          { btn: document.getElementById('navTabClasses'), view: document.getElementById('viewSectionClasses') },
+          { btn: document.getElementById('navTabWorkouts'), view: document.getElementById('viewSectionWorkouts') },
+          { btn: document.getElementById('navTabBTech'), view: document.getElementById('viewSectionBTech') },
+          { btn: document.getElementById('navTabJournal'), view: document.getElementById('viewSectionJournal') }
+        ];
+
+        tabs.forEach(tab => {
+          tab.btn.addEventListener('click', () => {
+            // Deactivate all
+            tabs.forEach(t => {
+              t.btn.classList.remove('bg-zinc-800', 'text-white');
+              t.btn.classList.add('text-gray-400');
+              t.view.classList.add('hidden');
+            });
+            // Activate clicked
+            tab.btn.classList.add('bg-zinc-800', 'text-white');
+            tab.btn.classList.remove('text-gray-400');
+            tab.view.classList.remove('hidden');
+
+            if (tab.view.id === 'viewSectionJournal') {
+              const picker = document.getElementById('journalDatePicker');
+              if (!picker.value) picker.value = getTodayString();
+              loadJournalForDate(picker.value);
+            }
+          });
+        });
+
+        document.getElementById('btnQuickSwitchJournal').addEventListener('click', () => {
+          tabJournal.click();
+        });
+
+        // New Data Forms
+        document.getElementById('classCreateForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          try {
+            await api.post('/api/classes', {
+              platform: document.getElementById('inputClassPlatform').value,
+              title: document.getElementById('inputClassTitle').value,
+              module: document.getElementById('inputClassModule').value,
+              date: getTodayString()
+            });
+            document.getElementById('inputClassTitle').value = '';
+            document.getElementById('inputClassModule').value = '';
+            await loadClasses();
+            showToast('Class logged');
+          } catch(e) { showToast('Failed to add class', 'error'); }
+        });
+
+        document.getElementById('classPlatformFilter').addEventListener('change', renderClasses);
+
+        document.getElementById('workoutCreateForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          try {
+            const [sets, reps] = document.getElementById('inputWorkoutSetsReps').value.split('x').map(s => s.trim());
+            await api.post('/api/workouts', {
+              exercise: document.getElementById('inputWorkoutExercise').value,
+              category: document.getElementById('inputWorkoutCategory').value,
+              sets: parseInt(sets) || 3,
+              reps: reps || '12',
+              weight: document.getElementById('inputWorkoutWeight').value,
+              date: getTodayString()
+            });
+            document.getElementById('inputWorkoutExercise').value = '';
+            await loadWorkouts();
+            showToast('Workout logged');
+          } catch(e) { showToast('Failed to add workout', 'error'); }
+        });
+
+        document.getElementById('btechSubjectCreateForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          try {
+            await api.post('/api/btech', {
+              subject_name: document.getElementById('inputSubjectName').value,
+              code: document.getElementById('inputSubjectCode').value,
+              credits: parseInt(document.getElementById('inputSubjectCredits').value) || 3,
+              grade: document.getElementById('inputSubjectGrade').value,
+              semester: parseInt(document.getElementById('inputSubjectSemester').value) || 5,
+              status: 'ongoing'
+            });
+            document.getElementById('inputSubjectName').value = '';
+            document.getElementById('inputSubjectCode').value = '';
+            document.getElementById('inputSubjectCredits').value = '3';
+            await loadBTech();
+            showToast('BTech Subject added successfully!');
+          } catch(err) {
+            showToast('Failed to add subject', 'error');
+          }
+        });
+
+        document.getElementById('btechSemFilter')?.addEventListener('change', renderBTech);
+
+        document.getElementById('codingCreateForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          try {
+            await api.post('/api/coding', {
+              platform: document.getElementById('inputCodingPlatform').value,
+              problem_title: document.getElementById('inputCodingTitle').value,
+              difficulty: document.getElementById('inputCodingDiff').value,
+              date: getTodayString()
+            });
+            document.getElementById('inputCodingTitle').value = '';
+            await loadBTech();
+            showToast('Problem logged');
+          } catch(e) { showToast('Failed to add coding problem', 'error'); }
+        });
+
+        // Task Form Submit
+        document.getElementById('taskCreateForm').addEventListener('submit', e => {
+          e.preventDefault();
+          const title = document.getElementById('inputTaskTitle').value;
+          const category = document.getElementById('selectCategory').value;
+          const priority = document.getElementById('selectPriority').value;
+          const estimate = document.getElementById('selectEstimate').value;
+
+          if (title.trim()) {
+            addTask(title, category, priority, estimate);
+            document.getElementById('inputTaskTitle').value = '';
+          }
+        });
+
+        // Tasks Tabs Switch
+        const btnTabActive = document.getElementById('btnTabActiveTasks');
+        const btnTabCompleted = document.getElementById('btnTabCompletedTasks');
+        const viewActive = document.getElementById('viewActiveTasks');
+        const viewCompleted = document.getElementById('viewCompletedTasks');
+
+        btnTabActive.addEventListener('click', () => {
+          btnTabActive.style.backgroundColor = '#18181b';
+          btnTabActive.style.color = '#ffffff';
+          btnTabCompleted.style.backgroundColor = 'transparent';
+          btnTabCompleted.style.color = '#71717a';
+          viewActive.classList.remove('hidden');
+          viewCompleted.classList.add('hidden');
+        });
+
+        btnTabCompleted.addEventListener('click', () => {
+          btnTabCompleted.style.backgroundColor = '#18181b';
+          btnTabCompleted.style.color = '#ffffff';
+          btnTabActive.style.backgroundColor = 'transparent';
+          btnTabActive.style.color = '#71717a';
+          viewCompleted.classList.remove('hidden');
+          viewActive.classList.add('hidden');
+        });
+
+        // Delegate Task Actions (Complete, Delete, Focus)
+        document.addEventListener('click', e => {
+          const target = e.target.closest('[data-action]');
+          if (!target) return;
+          const action = target.getAttribute('data-action');
+          const id = target.getAttribute('data-id');
+
+          if (action === 'complete') {
+            toggleTaskComplete(id);
+          } else if (action === 'delete') {
+            if (confirm('Delete this task from database?')) {
+              deleteTask(id);
+            }
+          } else if (action === 'focus') {
+            selectTaskForFocus(id);
+            startTimer();
+          }
+        });
+
+        // Timer Controls
+        document.getElementById('btnTimerToggle').addEventListener('click', toggleTimer);
+        document.getElementById('btnTimerReset').addEventListener('click', resetTimer);
+        document.getElementById('modeFocus').addEventListener('click', () => setTimerMode('focus'));
+        document.getElementById('modeShort').addEventListener('click', () => setTimerMode('short'));
+        document.getElementById('modeLong').addEventListener('click', () => setTimerMode('long'));
+
+        document.getElementById('btnQuickLogSession').addEventListener('click', async () => {
+          if (!activeFocusedTaskId) {
+            showToast('Please select a task to focus on first', 'info');
+            return;
+          }
+          try {
+            await api.post(`/api/tasks/${activeFocusedTaskId}/log-time`, {
+              durationSeconds: 25 * 60,
+              type: 'focus',
+              notes: 'Manual 25m focus log'
+            });
+            showToast('Logged 25m to active task!');
+            await loadAllData();
+          } catch (err) {
+            showToast('Failed to log time', 'error');
+          }
+        });
+
+        // Quick Standup Copy from Widget
+        document.getElementById('btnQuickCopyStandup').addEventListener('click', async () => {
+          try {
+            const res = await api.post(`/api/journal/generate/${getTodayString()}`);
+            if (res.standup) {
+              await navigator.clipboard.writeText(res.standup.markdown);
+              showToast('Copied daily standup Markdown to clipboard!');
+            }
+          } catch (e) {
+            showToast('Failed to compile standup', 'error');
+          }
+        });
+
+        // Date Range Filters
+        document.querySelectorAll('.filter-range-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-range-btn').forEach(b => {
+              b.style.backgroundColor = 'transparent';
+              b.style.color = '#a1a1aa';
+            });
+            btn.style.backgroundColor = '#18181b';
+            btn.style.color = '#ffffff';
+            dateFilter = btn.getAttribute('data-range');
+            renderKPIs();
+          });
+        });
+
+        // History Table Search & Filters
+        document.getElementById('historySearchInput').addEventListener('input', e => {
+          historySearchQuery = e.target.value;
+          historyPage = 1;
+          renderHistoryTable();
+        });
+
+        document.getElementById('historyCategoryFilter').addEventListener('change', e => {
+          historyCategoryFilterValue = e.target.value;
+          historyPage = 1;
+          renderHistoryTable();
+        });
+
+        document.getElementById('historyStatusFilter').addEventListener('change', e => {
+          historyStatusFilterValue = e.target.value;
+          historyPage = 1;
+          renderHistoryTable();
+        });
+
+        document.getElementById('btnPrevPage').addEventListener('click', () => {
+          if (historyPage > 1) {
+            historyPage--;
+            renderHistoryTable();
+          }
+        });
+
+        document.getElementById('btnNextPage').addEventListener('click', () => {
+          historyPage++;
+          renderHistoryTable();
+        });
+
+        // Journal Actions
+        const journalPicker = document.getElementById('journalDatePicker');
+        journalPicker.addEventListener('change', () => {
+          loadJournalForDate(journalPicker.value);
+        });
+
+        document.getElementById('btnAutoGenerateStandup').addEventListener('click', () => {
+          autoGenerateStandup(journalPicker.value || getTodayString());
+        });
+
+        document.getElementById('btnCopyStandupMarkdown').addEventListener('click', async () => {
+          const text = document.getElementById('journalSummaryText').value;
+          if (text) {
+            await navigator.clipboard.writeText(text);
+            showToast('Copied Markdown standup to clipboard!');
+          }
+        });
+
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.mood-btn').forEach(b => {
+              b.classList.remove('bg-emerald-950/40', 'border-emerald-600', 'text-emerald-400');
+            });
+            btn.classList.add('bg-emerald-950/40', 'border-emerald-600', 'text-emerald-400');
+          });
+        });
+
+        document.getElementById('btnSaveJournal').addEventListener('click', () => {
+          saveJournal(journalPicker.value || getTodayString());
+        });
+
+        // Export Dropdown
+        const exportBtn = document.getElementById('btnExportMenu');
+        const exportDropdown = document.getElementById('exportDropdown');
+        exportBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          exportDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+          exportDropdown.classList.add('hidden');
+        });
+
+        document.getElementById('btnExportJson').addEventListener('click', () => {
+          window.location.href = '/api/export/json';
+        });
+
+        document.getElementById('btnExportCsv').addEventListener('click', () => {
+          window.location.href = '/api/export/csv';
+        });
+
+        // Settings Modal
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('btnOpenSettings').addEventListener('click', () => {
+          document.getElementById('settingDailyGoal').value = settings.daily_goal_hours;
+          document.getElementById('settingPomodoroLength').value = settings.pomodoro_length;
+          document.getElementById('settingShortBreak').value = settings.short_break;
+          settingsModal.classList.remove('hidden');
+        });
+
+        document.getElementById('btnCloseSettings').addEventListener('click', () => {
+          settingsModal.classList.add('hidden');
+        });
+
+        document.getElementById('btnSaveSettings').addEventListener('click', async () => {
+          const goal = parseFloat(document.getElementById('settingDailyGoal').value) || 8.0;
+          const pomo = parseInt(document.getElementById('settingPomodoroLength').value, 10) || 25;
+          const brk = parseInt(document.getElementById('settingShortBreak').value, 10) || 5;
+
+          try {
+            await api.put('/api/settings', {
+              daily_goal_hours: goal,
+              pomodoro_length: pomo,
+              short_break: brk
+            });
+            settings.daily_goal_hours = goal;
+            settings.pomodoro_length = pomo;
+            settings.short_break = brk;
+
+            settingsModal.classList.add('hidden');
+            setTimerMode(timerMode);
+            renderKPIs();
+            showToast('Preferences updated');
+          } catch (e) {
+            showToast('Failed to save settings', 'error');
+          }
+        });
+
+        // Change Master Password
+        document.getElementById('btnSubmitChangePass').addEventListener('click', async () => {
+          const cur = document.getElementById('inputCurrentPass').value;
+          const neu = document.getElementById('inputNewPass').value;
+          if (!cur || !neu) {
+            showToast('Please enter both passwords', 'error');
+            return;
+          }
+          try {
+            const res = await api.post('/api/auth/change-password', {
+              currentPassword: cur,
+              newPassword: neu
+            });
+            if (res.token) {
+              activeAuthToken = res.token;
+              localStorage.setItem('toji_auth_token', res.token);
+              document.getElementById('inputCurrentPass').value = '';
+              document.getElementById('inputNewPass').value = '';
+              showToast('Master password successfully changed!');
+            }
+          } catch (err) {
+            showToast(err.message || 'Password update failed', 'error');
+          }
+        });
+
+        // Load Sample Data
+        document.getElementById('btnReloadMockData').addEventListener('click', async () => {
+          if (confirm('Load 14 days of realistic activity into SQLite?')) {
+            await api.post('/api/sample-data');
+            await loadAllData();
+            settingsModal.classList.add('hidden');
+            showToast('Loaded 14 days of activity into database');
+          }
+        });
+
+        // Purge Work Data
+        document.getElementById('btnClearAllWork').addEventListener('click', async () => {
+          if (confirm('Purge all tasks and time logs from database?')) {
+            await api.post('/api/clear-data');
+            await loadAllData();
+            settingsModal.classList.add('hidden');
+            showToast('Database purged');
+          }
+        });
+      }
+
+      // -----------------------------------------------------------------------
+      // Initialize Application
+      // -----------------------------------------------------------------------
+      async function main() {
+        setupEventListeners();
+        const authed = await initAuth();
+        if (authed) {
+          await loadAllData();
+        }
+      }
+
+      main();
+    })();
+  </script>
+</body>
+</html>

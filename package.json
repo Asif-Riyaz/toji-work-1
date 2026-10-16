@@ -1,0 +1,21 @@
+{
+  "name": "toji-work-tracker",
+  "version": "1.0.0",
+  "description": "Toji — Personal Daily Work Tracker & Analytics",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "node build.js"
+  },
+  "keywords": [
+    "productivity",
+    "pomodoro",
+    "time-tracker",
+    "analytics",
+    "work-log"
+  ],
+  "author": "",
+  "license": "MIT"
+}
